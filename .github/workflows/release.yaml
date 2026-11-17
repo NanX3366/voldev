@@ -1,11 +1,19 @@
 name: Release
 
-# 打 tag（v1.0.28 这种）时自动构建，把 jar 挂到 GitHub Release 上。
+# 两种触发方式：
+#   1. 打 tag 推送（v1.0.28 这种）—— 命令行发版
+#   2. Actions 页面点 "Run workflow" 手工发版 —— 不方便用命令行时用这个
 # 不需要任何 Secret：用的是仓库自带的 GITHUB_TOKEN。
 on:
   push:
     tags:
       - "v*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "要发布的版本号，形如 v1.0.28（必须与 gradle.properties 的 version 一致）"
+        required: true
+        type: string
 
 permissions:
   contents: write
@@ -36,6 +44,19 @@ jobs:
           cache: pnpm
           cache-dependency-path: ui/pnpm-lock.yaml
 
+      # tag 和 gradle.properties 版本不一致时直接失败，
+      # 否则会出现「tag 是 v1.0.29、jar 里写 1.0.28」这种对不上的包
+      - name: Check version matches tag
+        run: |
+          set -euo pipefail
+          VERSION="$(sed -n 's/^version=//p' gradle.properties | tr -d '\r' | head -n1)"
+          TAG="${{ inputs.tag || github.ref_name }}"
+          echo "gradle.properties: ${VERSION} / tag: ${TAG}"
+          if [ "v${VERSION}" != "${TAG}" ]; then
+            echo "::error::版本不一致：gradle.properties=${VERSION}，tag=${TAG}。先把 gradle.properties 的 version 改成 ${TAG#v} 再发版。"
+            exit 1
+          fi
+
       - name: Build
         run: ./gradlew clean build -PhaloPlatform=2.27.3
 
@@ -49,5 +70,9 @@ jobs:
       - name: Publish release
         uses: softprops/action-gh-release@v3
         with:
+          # 手工触发时 tag 可能还不存在，action 会自动按当前提交创建
+          tag_name: ${{ inputs.tag || github.ref_name }}
           files: build/libs/*.jar
           generate_release_notes: true
+          draft: false
+          prerelease: false

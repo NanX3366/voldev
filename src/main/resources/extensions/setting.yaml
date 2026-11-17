@@ -7,7 +7,7 @@ spec:
     - group: theme
       label: 配色主题
       formSchema:
-        # 10 套主题用下拉比 radio 省地方，选项里直接标深/浅色，不用挨个点开试。
+        # 15 套主题用下拉比 radio 省地方，选项里直接标深/浅色，不用挨个点开试。
         - $formkit: select
           name: theme
           label: 代码配色主题
@@ -29,8 +29,18 @@ spec:
               value: github-dark
             - label: Tokyo Night（深色，蓝紫夜色）
               value: tokyo-night
+            - label: Gruvbox Dark（深色，复古暖褐）
+              value: gruvbox-dark
+            - label: Catppuccin Mocha（深色，莫兰迪紫灰）
+              value: catppuccin-mocha
+            - label: Solarized Dark（深色，经典深青）
+              value: solarized-dark
             - label: GitHub Light（浅色，白底）
               value: github-light
             - label: Solarized Light（浅色，米黄护眼）
               value: solarized-light
+            - label: Catppuccin Latte（浅色，莫兰迪灰白）
+              value: catppuccin-latte
+            - label: One Light（浅色，Atom 风）
+              value: one-light
           value: dark

@@ -131,6 +131,60 @@ public enum ThemePalette {
         "#E0AF68", "#9ECE6A", "#7DCFFF", "#A9B1D6", "#E0AF68",
         "#BB9AF7", "#A9B1D6", "#A9B1D6", "#89DDFF", "#BB9AF7",
         "#E0AF68", "#2E2130", "#1D2B33", "#252237", "#1E2B22"
+    }),
+    /** Gruvbox Dark：暖褐底色 + 土黄/砖红点缀，复古终端手感，久看不累。 */
+    GRUVBOX_DARK("gruvbox-dark", new String[] {
+        "#282828", "#3C3836", "#665C54", "#504945", "#EBDBB2",
+        "#D5C4A1", "#B8BB26", "#83A598", "#8EC07C", "#B8BB26",
+        "#8EC07C", "#928374", "#83A598", "#FB4934", "#282828",
+        "#504945", "#665C54", "#FABD2F", "#D3869B", "#FE8019",
+        "#D5C4A1", "#B8BB26", "#8EC07C", "#FE8019", "#D3869B",
+        "#83A598", "#EBDBB2", "#EBDBB2", "#EBDBB2", "#D3869B",
+        "#83A598", "#402C2C", "#2C3A38", "#34303F", "#2E3B2E"
+    }),
+
+    /** Catppuccin Mocha：柔和莫兰迪紫灰，是目前最流行的深色配色之一。 */
+    CATPPUCCIN_MOCHA("catppuccin-mocha", new String[] {
+        "#1E1E2E", "#313244", "#585B70", "#45475A", "#CDD6F4",
+        "#BAC2DE", "#A6E3A1", "#89B4FA", "#94E2D5", "#A6E3A1",
+        "#94E2D5", "#6C7086", "#89B4FA", "#F38BA8", "#1E1E2E",
+        "#45475A", "#585B70", "#F9E2AF", "#FAB387", "#F5C2E7",
+        "#BAC2DE", "#A6E3A1", "#94E2D5", "#F9E2AF", "#CBA6F7",
+        "#89B4FA", "#CDD6F4", "#CDD6F4", "#CDD6F4", "#CBA6F7",
+        "#89B4FA", "#3A2A31", "#2A3340", "#332A3D", "#2C3A32"
+    }),
+
+    /** Catppuccin Latte：同一套莫兰迪色系的浅色版，白底但不刺眼。 */
+    CATPPUCCIN_LATTE("catppuccin-latte", new String[] {
+        "#EFF1F5", "#E6E9EF", "#BCC0CC", "#DCE0E8", "#4C4F69",
+        "#5C5F77", "#40A02B", "#1E66F5", "#179299", "#40A02B",
+        "#179299", "#8C8FA1", "#1E66F5", "#D20F39", "#EFF1F5",
+        "#DCE0E8", "#BCC0CC", "#DF8E1D", "#FE640B", "#EA76CB",
+        "#5C5F77", "#40A02B", "#179299", "#DF8E1D", "#8839EF",
+        "#1E66F5", "#4C4F69", "#4C4F69", "#4C4F69", "#8839EF",
+        "#1E66F5", "#FCE7EC", "#E3F1F0", "#EDE7FB", "#E9F3E6"
+    }),
+
+    /** Solarized Dark：经典深青底，配 Solarized Light 成对使用。 */
+    SOLARIZED_DARK("solarized-dark", new String[] {
+        "#002B36", "#073642", "#586E75", "#0F4A56", "#93A1A1",
+        "#839496", "#859900", "#268BD2", "#2AA198", "#2AA198",
+        "#2AA198", "#586E75", "#268BD2", "#DC322F", "#002B36",
+        "#0F4A56", "#586E75", "#268BD2", "#D33682", "#B58900",
+        "#93A1A1", "#2AA198", "#2AA198", "#B58900", "#6C71C4",
+        "#268BD2", "#93A1A1", "#93A1A1", "#93A1A1", "#6C71C4",
+        "#268BD2", "#3A1F26", "#0A3F4B", "#21304A", "#263B26"
+    }),
+
+    /** One Light：Atom 浅色版，白底 + 蓝绿关键字，和 One Dark 正好一对。 */
+    ONE_LIGHT("one-light", new String[] {
+        "#FAFAFA", "#EAEAEB", "#C6C6C8", "#DCDCDE", "#383A42",
+        "#4F525E", "#A626A4", "#4078F2", "#0184BC", "#50A14F",
+        "#0184BC", "#A0A1A7", "#4078F2", "#E45649", "#FAFAFA",
+        "#DCDCDE", "#C6C6C8", "#4078F2", "#986801", "#B76B01",
+        "#383A42", "#50A14F", "#0184BC", "#B76B01", "#A626A4",
+        "#4078F2", "#383A42", "#383A42", "#383A42", "#A626A4",
+        "#4078F2", "#FCE9E9", "#E6F5F7", "#EFE9FB", "#E9F5EC"
     });
 
     /**

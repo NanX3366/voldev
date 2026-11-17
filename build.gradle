@@ -7,15 +7,20 @@ plugins {
 group 'com.voldev.voldev'
 
 repositories {
-    // 优先使用 halo_dev 通过 publishToMavenLocal 发布的 2.28.0-SNAPSHOT 构件。
+    // 优先使用 halo_dev 通过 publishToMavenLocal 发布的快照构件。
     // 换机器后先在 halo_dev 执行：
     // gradlew.bat :api:publishToMavenLocal :platform:application:publishToMavenLocal :platform:plugin:publishToMavenLocal
     mavenLocal()
     mavenCentral()
 }
 
+// 平台版本：本地联调默认用 mavenLocal 里的 2.28.0-SNAPSHOT。
+// GitHub Actions 上没有 mavenLocal（快照没发布到公共仓库），
+// 所以 CI 用 -PhaloPlatform=2.27.3 切到中央仓库的正式版。
+def haloPlatform = providers.gradleProperty('haloPlatform').getOrElse('2.28.0-SNAPSHOT')
+
 dependencies {
-    implementation platform('run.halo.tools.platform:plugin:2.28.0-SNAPSHOT')
+    implementation platform("run.halo.tools.platform:plugin:${haloPlatform}")
     compileOnly 'run.halo.app:api'
 }
 

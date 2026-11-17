@@ -183,6 +183,7 @@ public enum ThemePalette {
 
     private final String id;
     private final Map<String, String> vars;
+    private final String styleTag;
 
     ThemePalette(String id, String[] values) {
         if (values.length != Vars.NAMES.length) {
@@ -194,6 +195,11 @@ public enum ThemePalette {
             map.put(Vars.NAMES[i], values[i]);
         }
         this.vars = map;
+        this.styleTag = "<style id=\"voldev-theme\">:root{"
+            + map.entrySet().stream()
+                .map(e -> e.getKey() + ":" + e.getValue())
+                .collect(Collectors.joining(";"))
+            + ";}</style>";
     }
 
     public String getId() {
@@ -212,9 +218,6 @@ public enum ThemePalette {
     }
 
     public String toStyleTag() {
-        String body = vars.entrySet().stream()
-            .map(e -> e.getKey() + ":" + e.getValue())
-            .collect(Collectors.joining(";"));
-        return "<style id=\"voldev-theme\">:root{" + body + ";}</style>";
+        return styleTag;
     }
 }

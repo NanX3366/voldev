@@ -1,6 +1,8 @@
 package com.voldev.voldev;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import org.reactivestreams.Publisher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,6 +52,8 @@ public class ThemeStyleFilter implements AdditionalWebFilter {
 
     private final ReactiveSettingFetcher settingFetcher;
 
+    private final Map<String, String> styleCache = new ConcurrentHashMap<>();
+
     public ThemeStyleFilter(ReactiveSettingFetcher settingFetcher) {
         this.settingFetcher = settingFetcher;
     }
@@ -71,10 +75,14 @@ public class ThemeStyleFilter implements AdditionalWebFilter {
             .defaultIfEmpty(VoldevSetting.DEFAULT_THEME)
             .map(ThemePalette::of)
             .flatMap(palette -> {
-                log.debug("voldev: inject theme [{}] for {}", palette.getId(), request.getPath());
+                if (log.isDebugEnabled()) {
+                    log.debug("voldev: inject theme [{}] for {}", palette.getId(),
+                        request.getPath());
+                }
+                var style = styleCache.computeIfAbsent(palette.getId(),
+                    key -> palette.toStyleTag() + SHELL_STYLE);
                 return chain.filter(exchange.mutate()
-                    .response(new InjectingResponse(
-                        exchange.getResponse(), palette.toStyleTag() + SHELL_STYLE))
+                    .response(new InjectingResponse(exchange.getResponse(), style))
                     .build());
             });
     }
@@ -131,6 +139,9 @@ public class ThemeStyleFilter implements AdditionalWebFilter {
             try {
                 var bytes = new byte[buffer.readableByteCount()];
                 buffer.read(bytes);
+                if (!HtmlRewriter.mayContainVolcano(bytes)) {
+                    return super.writeWith(Mono.just(bufferFactory().wrap(bytes)));
+                }
                 var html = new String(bytes, StandardCharsets.UTF_8);
                 var rewritten = HtmlRewriter.rewrite(html, styleTag);
 

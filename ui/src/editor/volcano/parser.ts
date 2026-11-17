@@ -42,14 +42,22 @@ export type VolcanoPackage = {
 }
 
 export type VolcanoProgram = {
-  attrs: Attrs
   pkg: VolcanoPackage | null
   classes: VolcanoClass[]
 
   fragment: MethodItem[]
 }
 
-const DECL_RE = (keyword: string) => new RegExp(`^\\s*${keyword}\\s+([^\\s<]+)`)
+const DECL_RES = new Map<string, RegExp>()
+
+function declRe(keyword: string): RegExp {
+  let re = DECL_RES.get(keyword)
+  if (!re) {
+    re = new RegExp(`^\\s*${keyword}\\s+([^\\s<]+)`)
+    DECL_RES.set(keyword, re)
+  }
+  return re
+}
 
 function parseAttrs(text: string): Attrs {
   const attrs: Attrs = []
@@ -123,7 +131,7 @@ function readAngleBlock(
 
 function readDecl(lines: string[], start: number, keyword: string) {
   const text = lines[start] ?? ''
-  const match = text.match(DECL_RE(keyword))
+  const match = text.match(declRe(keyword))
   if (!match) {
     return null
   }
@@ -417,7 +425,6 @@ function skipHeader(lines: string[]): number {
 
 export function parseVolcano(text: string): VolcanoProgram {
   const lines = (text ?? '').replace(/\r\n?/g, '\n').split('\n')
-  let attrs: Attrs = []
   let pkg: VolcanoPackage | null = null
   const classes: VolcanoClass[] = []
   let i = 0
@@ -430,11 +437,7 @@ export function parseVolcano(text: string): VolcanoProgram {
       continue
     }
     if (text.startsWith('<火山程序')) {
-      const open = raw.indexOf('<')
-      const block = readAngleBlock(lines, i, open)
-
-      attrs = parseAttrs(block.content.replace(/^\s*火山程序/, '').replace(/\/\s*$/, ''))
-      i = block.endLine + 1
+      i = readAngleBlock(lines, i, raw.indexOf('<')).endLine + 1
       continue
     }
     if (text.startsWith('包 ')) {
@@ -492,5 +495,5 @@ export function parseVolcano(text: string): VolcanoProgram {
     }
   }
 
-  return { attrs, pkg, classes, fragment }
+  return { pkg, classes, fragment }
 }

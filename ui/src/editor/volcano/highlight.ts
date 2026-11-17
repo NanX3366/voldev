@@ -63,23 +63,62 @@ const CS = {
   op: 'vc-hv',
 } as const
 
+const PUNCT: Record<string, string> = {
+  '(': CS.paren,
+  ')': CS.paren,
+  '[': CS.bracket,
+  ']': CS.bracket,
+  '{': CS.brace,
+  '}': CS.brace,
+  ',': CS.comma,
+  '.': CS.dot,
+}
+
+const ESCAPES: Record<string, string> = {
+  '&': '&amp;',
+  '<': '&lt;',
+  '>': '&gt;',
+  '"': '&quot;',
+}
+
 export function escapeHtml(text: string): string {
-  return (text ?? '')
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
+  return (text ?? '').replace(/[&<>"]/g, (ch) => ESCAPES[ch] ?? ch)
+}
+
+function nextChar(text: string, from: number): string {
+  for (let i = from; i < text.length; i++) {
+    const code = text.charCodeAt(i)
+    if (code !== 32 && code !== 9) {
+      return text[i] ?? ''
+    }
+  }
+  return ''
 }
 
 function paint(cls: string, text: string): string {
   return `<span class="${cls}">${escapeHtml(text)}</span>`
 }
 
+const LINE_CACHE = new Map<string, string>()
+const LINE_CACHE_MAX = 4096
+
 export function highlightLine(line: string): string {
   if (!line || !line.trim()) {
     return ''
   }
+  const hit = LINE_CACHE.get(line)
+  if (hit !== undefined) {
+    return hit
+  }
+  const html = renderLine(line)
+  if (LINE_CACHE.size >= LINE_CACHE_MAX) {
+    LINE_CACHE.clear()
+  }
+  LINE_CACHE.set(line, html)
+  return html
+}
 
+function renderLine(line: string): string {
   if (line.trimStart().startsWith('@')) {
     return paint(CS.macro, line)
   }
@@ -110,38 +149,45 @@ export function highlightLine(line: string): string {
       lead + stash(CS.keyword, keyword) + space + stash(CS.defName, name),
   )
 
-  rest = rest.replace(/[\u4e00-\u9fa5A-Za-z_][\u4e00-\u9fa5A-Za-z0-9_.]*/g, (match) => {
-    if (KEYWORDS.has(match)) {
-      return stash(CS.keyword, match)
-    }
-    if (TYPES.has(match)) {
-      return stash(CS.type, match)
-    }
-    if (BOOLS.has(match)) {
-      return stash(CS.bool, match)
-    }
-    return match
-  })
-
-  rest = rest.replace(/([\u4e00-\u9fa5A-Za-z_][\u4e00-\u9fa5A-Za-z0-9_]*)(?=\s*[（(])/g, (match) =>
-    stash(CS.func, match),
+  rest = rest.replace(
+    /[\u4e00-\u9fa5A-Za-z_][\u4e00-\u9fa5A-Za-z0-9_.]*/g,
+    (match, offset: number) => {
+      if (KEYWORDS.has(match)) {
+        return stash(CS.keyword, match)
+      }
+      if (TYPES.has(match)) {
+        return stash(CS.type, match)
+      }
+      if (BOOLS.has(match)) {
+        return stash(CS.bool, match)
+      }
+      const dot = match.lastIndexOf('.')
+      const head = dot >= 0 ? match.slice(0, dot + 1) : ''
+      const tail = dot >= 0 ? match.slice(dot + 1) : match
+      if (tail) {
+        const next = nextChar(rest, offset + match.length)
+        if (next === '(' || next === '（') {
+          return head + stash(CS.func, tail)
+        }
+        if (next === '[') {
+          return head + stash(CS.array, tail)
+        }
+      }
+      return match
+    },
   )
 
-  rest = rest.replace(/([\u4e00-\u9fa5A-Za-z_][\u4e00-\u9fa5A-Za-z0-9_]*)(?=\s*\[)/g, (match) =>
-    stash(CS.array, match),
+  rest = rest.replace(/[()[\]{},.]/g, (match) => stash(PUNCT[match] ?? CS.text, match))
+  rest = rest.replace(/(==|!=|<>|<=|>=|\|\||&&|[=+\-*/%<>])/g, (match) =>
+    stash(CS.op, match),
   )
 
-  rest = rest.replace(/[()]/g, (match) => stash(CS.paren, match))
-  rest = rest.replace(/[[\]]/g, (match) => stash(CS.bracket, match))
-  rest = rest.replace(/[{}]/g, (match) => stash(CS.brace, match))
-  rest = rest.replace(/,/g, (match) => stash(CS.comma, match))
-  rest = rest.replace(/\./g, (match) => stash(CS.dot, match))
-  rest = rest.replace(/(==|!=|<>|<=|>=|\|\||&&)/g, (match) => stash(CS.op, match))
-  rest = rest.replace(/([=+\-*/%<>])/g, (match) => stash(CS.op, match))
-
-  let html = escapeHtml(rest).replace(/[\ue000-\uf8ff]/g, (marker) => {
-    const index = marker.charCodeAt(0) - 0xe000
-    return tokens[index] ?? ''
+  let html = rest.replace(/[&<>"]|[\ue000-\uf8ff]/g, (ch) => {
+    const code = ch.charCodeAt(0)
+    if (code >= 0xe000) {
+      return tokens[code - 0xe000] ?? ''
+    }
+    return ESCAPES[ch] ?? ch
   })
 
   if (comment) {
@@ -150,6 +196,4 @@ export function highlightLine(line: string): string {
   return html
 }
 
-export function plainText(text: string, cls: string = CS.text): string {
-  return paint(cls, text)
-}
+

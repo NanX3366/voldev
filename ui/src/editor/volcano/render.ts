@@ -358,10 +358,6 @@ function attrPairs(attrs: Attrs, skip: Set<string> = KNOWN_ATTRS): AttrPair[] {
   return pairs
 }
 
-function attrValueHtml(value: string): string {
-  return escapeHtml(value)
-}
-
 function methodCategory(attrs: Attrs): string {
   const flags = METHOD_FLAGS.filter((flag) => has(attrs, flag))
   const paint = (text: string) => `<span class="vc-mc">${escapeHtml(text)}</span>`
@@ -399,15 +395,18 @@ function td(
 ): string {
   const { rowspan = 1, colspan = 1, shrink = false, tone = '' } = opts
 
-  const plain = html
-    .replace(/<br\s*\/?>/g, '\n')
-    .replace(/<[^>]+>/g, '')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-    .replace(/&quot;/g, '"')
-    .replace(/&amp;/g, '&')
-    .trim()
-  const flat = plain.replace(/\s*\n\s*/g, ' ').trim()
+  const plain =
+    html.indexOf('<') < 0 && html.indexOf('&') < 0
+      ? html.trim()
+      : html
+          .replace(/<br\s*\/?>/g, '\n')
+          .replace(/<[^>]+>/g, '')
+          .replace(/&lt;/g, '<')
+          .replace(/&gt;/g, '>')
+          .replace(/&quot;/g, '"')
+          .replace(/&amp;/g, '&')
+          .trim()
+  const flat = plain.indexOf('\n') < 0 ? plain : plain.replace(/\s*\n\s*/g, ' ').trim()
   const title = flat.length > 10 ? ` title="${escapeHtml(flat)}"` : ''
 
   const wrap = shrink && plain.split('\n').some((line) => line.length > REMARK_WRAP_AT)
@@ -454,7 +453,7 @@ function attrTable(
         cells[nameIdx] = pair.name ? escapeHtml(pair.name) : ''
       }
       if (valueIdx >= 0) {
-        cells[valueIdx] = pair.value ? attrValueHtml(pair.value) : ''
+        cells[valueIdx] = pair.value ? escapeHtml(pair.value) : ''
       }
       const tds: string[] = []
       cells.forEach((html, index) => {
@@ -503,9 +502,19 @@ function nestedBlock(table: string, depth: number, codeBase: number): string {
   return `<div style="padding:4px 0 4px ${left}px;${guideBackground(depth, codeBase)}">${table}</div>`
 }
 
+function countRows(html: string): number {
+  let count = 0
+  let at = html.indexOf('<tr>')
+  while (at >= 0) {
+    count += 1
+    at = html.indexOf('<tr>', at + 4)
+  }
+  return count
+}
+
 function sec(head: string, body = ''): string {
   const inner = body.trim()
-  const rows = (head.match(/<tr>/g) ?? []).length + (inner.match(/<tr>/g) ?? []).length
+  const rows = countRows(head) + countRows(inner)
   if (rows <= 2) {
     return head + inner
   }
@@ -552,7 +561,7 @@ function methodBlock(method: VolcanoMethod, leftPx: number): string {
         td(methodCategory(method.attrs), { rowspan: methodSpan }),
         td(check(method.attrs, '静态'), { rowspan: methodSpan }),
         td(pair.name ? escapeHtml(pair.name) : '', { tone: 'vc-attr-name' }),
-        td(pair.value ? attrValueHtml(pair.value) : '', { tone: 'vc-attr-value' }),
+        td(pair.value ? escapeHtml(pair.value) : '', { tone: 'vc-attr-value' }),
         td(remark(attrLines(method.attrs, '注释')), {
           shrink: true,
           rowspan: methodSpan,
@@ -597,7 +606,7 @@ function methodBlock(method: VolcanoMethod, leftPx: number): string {
             td(name(decl.name), { rowspan: span }),
             td(typeCell, { colspan: PARAM_TYPE_COLSPAN, rowspan: span }),
             td(pair.name ? escapeHtml(pair.name) : ''),
-            td(pair.value ? attrValueHtml(pair.value) : ''),
+            td(pair.value ? escapeHtml(pair.value) : ''),
             td(remark(attrLines(decl.attrs, '注释')), { shrink: true, rowspan: span }),
           ]
           trs.push(`<tr>${tds.join('')}</tr>`)

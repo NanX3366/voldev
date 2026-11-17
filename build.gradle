@@ -7,16 +7,11 @@ plugins {
 group 'com.voldev.voldev'
 
 repositories {
-    // 优先使用 halo_dev 通过 publishToMavenLocal 发布的快照构件。
-    // 换机器后先在 halo_dev 执行：
-    // gradlew.bat :api:publishToMavenLocal :platform:application:publishToMavenLocal :platform:plugin:publishToMavenLocal
+
     mavenLocal()
     mavenCentral()
 }
 
-// 平台版本：本地联调默认用 mavenLocal 里的 2.28.0-SNAPSHOT。
-// GitHub Actions 上没有 mavenLocal（快照没发布到公共仓库），
-// 所以 CI 用 -PhaloPlatform=2.27.3 切到中央仓库的正式版。
 def haloPlatform = providers.gradleProperty('haloPlatform').getOrElse('2.28.0-SNAPSHOT')
 
 dependencies {
@@ -40,16 +35,10 @@ tasks.named('generatePluginComponentsIdx') {
 }
 
 halo {
-    // 这里的 version 决定 haloServer 拉取的 Halo 发行版（Docker 镜像）。
-    // 2.28.0-SNAPSHOT 还没有公开发行版，所以保留 2.27；源码联调请使用
-    // halo_dev 的 bootRun（dev,win,local）+ application-local.yaml 的 fixed-plugin-path。
+
     version = '2.27'
 }
 
-// plugin.yaml 里的 ${version} 用 gradle.properties 的 version 填充。
-// Plugin CRD 把 spec.version 设为必填，不填的话在后台「重新加载」插件会报
-//   spec: Field 'version' is required. (code: 1026)
-// 声明成 input，改版本号时才会重新展开，否则会命中增量构建缓存。
 tasks.named('processResources') {
     inputs.property('pluginVersion', project.version)
     filesMatching('plugin.yaml') {
@@ -57,11 +46,6 @@ tasks.named('processResources') {
     }
 }
 
-// Halo 的插件组件索引（@Component 的类清单）由 generatePluginComponentsIdx 生成到
-// build/tmp/META-INF/plugin-components.idx，只有打 jar 时才会被带进去。
-// 但 dev 模式（fixed-plugin-path）加载的是 build/ 目录，目录里没有这份索引的话，
-// 除主类以外的 @Component bean（比如 ThemeStyleFilter）根本不会被注册成 Spring bean，
-// 表现为「插件能启动、UI 正常，但后端扩展完全不执行」。
 tasks.register('syncPluginComponentsIdx', Copy) {
     from layout.buildDirectory.dir('tmp/META-INF')
     include 'plugin-components.idx'
@@ -71,14 +55,11 @@ tasks.register('syncPluginComponentsIdx', Copy) {
 
 tasks.named('jar') {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-    // 空目录（src/main/resources/static 这种模板残留）不进包
+
     includeEmptyDirs = false
     finalizedBy 'syncPluginComponentsIdx'
 }
 
-// 用 Sync 而不是 Copy：前端每次构建都会生成新的 hash 文件名（main.<hash>.js），
-// Copy 只做增量复制、不清理目标目录，旧文件会一直堆在 build/resources/main/ui 里被打进 jar。
-// Sync 会先把目标目录同步成源目录的样子，历史产物自然被清掉。
 tasks.register('processUiResources', Sync) {
     from project(':ui').layout.buildDirectory.dir('dist')
     into layout.buildDirectory.dir('resources/main/ui')

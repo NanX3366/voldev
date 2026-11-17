@@ -55,7 +55,7 @@ export const ExtensionVolcano = Node.create({
         element.setAttribute(key, String(value));
       }
     });
-    // 自定义标签默认是 inline，表格要按块级布局
+
     element.setAttribute("style", "display:block");
     element.innerHTML = renderVolcano(node.attrs.content ?? "");
     return element;

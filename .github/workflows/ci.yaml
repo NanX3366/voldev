@@ -1,6 +1,5 @@
 name: CI
 
-# 推送到 main 或开 PR 时自动构建，构建产物（jar）可在 Actions 页面下载。
 on:
   push:
     branches:
@@ -9,7 +8,6 @@ on:
     branches:
       - main
 
-# 同一分支连续推送时，取消上一次还在跑的构建
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
@@ -40,8 +38,6 @@ jobs:
           cache: pnpm
           cache-dependency-path: ui/pnpm-lock.yaml
 
-      # 构建机上没有本机 mavenLocal 里的 2.28.0-SNAPSHOT，
-      # 用 -PhaloPlatform 切到中央仓库的正式版（build.gradle 里已参数化）
       - name: Build
         run: ./gradlew clean build -PhaloPlatform=2.27.3
 

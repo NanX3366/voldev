@@ -7,7 +7,6 @@ spec:
     - group: theme
       label: 配色主题
       formSchema:
-        # 15 套主题用下拉比 radio 省地方，选项里直接标深/浅色，不用挨个点开试。
         - $formkit: select
           name: theme
           label: 代码配色主题

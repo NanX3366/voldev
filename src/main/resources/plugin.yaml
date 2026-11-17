@@ -1,0 +1,27 @@
+# Refer https://docs.halo.run/developer-guide/plugin/basics/manifest
+
+apiVersion: plugin.halo.run/v1alpha1
+kind: Plugin
+metadata:
+  # The name defines how the plugin is invoked, A unique name
+  name: voldev
+spec:
+  enabled: true
+  # 由 build.gradle 的 processResources 用 gradle.properties 的 version 展开；
+  # Plugin CRD 要求 version 必填，缺了重载插件会报 spec: Field 'version' is required.
+  version: "${version}"
+  requires: ">=2.27.0"
+  author:
+    name: XxX
+    website: https://github.com/NanX3366
+  logo: logo.png
+  homepage: https://github.com/NanX3366/voldev#readme
+  repo: https://github.com/NanX3366/voldev
+  issues: https://github.com/NanX3366/voldev/issues
+  displayName: "火山源码高亮可视化"
+  description: "可视化显示火山中文编程开发平台源码"
+  settingName: voldev-settings
+  configMapName: voldev-configmap
+  license:
+    - name: "GPL-3.0"
+      url: "https://github.com/NanX3366/voldev/blob/main/LICENSE"

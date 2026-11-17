@@ -1,0 +1,36 @@
+apiVersion: v1alpha1
+kind: Setting
+metadata:
+  name: voldev-settings
+spec:
+  forms:
+    - group: theme
+      label: 配色主题
+      formSchema:
+        # 10 套主题用下拉比 radio 省地方，选项里直接标深/浅色，不用挨个点开试。
+        - $formkit: select
+          name: theme
+          label: 代码配色主题
+          help: 只影响文章里火山源码块的配色，保存后刷新前台页面即可生效，不需要重新保存文章。
+          options:
+            - label: VS Code Dark+（深色）
+              value: dark
+            - label: VS Code Light+（浅色）
+              value: light
+            - label: Monokai（深色，高对比）
+              value: monokai
+            - label: Dracula（深色，紫调）
+              value: dracula
+            - label: One Dark（深色，Atom 风）
+              value: one-dark
+            - label: Nord（深色，低饱和蓝灰）
+              value: nord
+            - label: GitHub Dark（深色，纯黑底）
+              value: github-dark
+            - label: Tokyo Night（深色，蓝紫夜色）
+              value: tokyo-night
+            - label: GitHub Light（浅色，白底）
+              value: github-light
+            - label: Solarized Light（浅色，米黄护眼）
+              value: solarized-light
+          value: dark

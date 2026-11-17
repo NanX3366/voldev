@@ -80,7 +80,9 @@ jobs:
           {
             echo "## ${TITLE}"
             echo
-            git log "${RANGE}" --no-merges --pretty=format:'- %s' | sed '/^[[:space:]]*$/d'
+            git log "${RANGE}" --no-merges --pretty=format:'- %s' \
+              | grep -vE '^- chore: v?[0-9]+\.[0-9]+\.[0-9]+$' \
+              | sed '/^[[:space:]]*$/d'
             echo
             echo
             echo "安装包见下方 Assets 里的 \`plugin-voldev-${TAG#v}.jar\`。"
